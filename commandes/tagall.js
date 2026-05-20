@@ -1,14 +1,6 @@
 // commands/tagall.js
 import config from "../config.js";
-
-// --- 5 Photos ---
-const photos = [
-  "https://jpcdn.it/img/10c0452317fd17d5b2823646e5ad0c02.jpg",
-  "https://jpcdn.it/img/cee15a8323b24bd4053a15dc6c9898f6.jpg",
-  "https://jpcdn.it/img/daa3cc2479bb283a202c9cacc5b1cdac.jpg",
-  "https://jpcdn.it/img/467a5e29d65f902a4d4ccad28a7b2171.jpg",
-  "https://jpcdn.it/img/2be905ddc26aac4f10782e5ae54274c6.jpg",
-];
+import { getThemePhoto, getThemeStyle, formatThemedMessage } from "./theme.js";
 
 export default async function tagallCommand(message, client) {
   try {
@@ -16,26 +8,35 @@ export default async function tagallCommand(message, client) {
     const metadata = await client.groupMetadata(remoteJid).catch(() => null);
     if (!metadata) return client.sendMessage(remoteJid, { text: "❌ Cette commande ne fonctionne que dans un groupe." });
 
+    const style = getThemeStyle(remoteJid);
+    const photo = getThemePhoto(remoteJid);
+    
     let i = 1;
-    const members = metadata.participants.map(p => `┃ ✞︎ *${i++}.* @${p.id.split("@")[0]}`).join("\n");
+    const membersList = metadata.participants.map(p => `${style.item} *${i++}.* @${p.id.split("@")[0]}`).join("\n");
 
-    const caption = `
-╭━〔 👥 𝐓𝐀𝐆 𝐀𝐋𝐋 〕━⬣
-┃ 📛 𝗕𝗼𝘁 : NO NAME MD
-┃ 👑 𝗗𝗲𝘃 : ${config.nameCreator}
-┃ 👥 𝗠𝗲𝗺𝗯𝗿𝗲𝘀 : ${metadata.participants.length}
-┣━━〔 📋 𝗟𝗜𝗦𝗧𝗘 〕━⬣
-${members}
-╰━━〔𝗡𝗢 𝗡𝗔𝗠𝗘 𝗠𝗗〕━⬣
-> ${config.nameCreator}`;
+    const extraInfo = {
+      botName: config.BotName,
+      dev: config.nameCreator,
+      theme: style.nom,
+      members: metadata.participants.length
+    };
+    
+    const caption = formatThemedMessage(remoteJid, "TAG ALL", [membersList], extraInfo);
 
-    // Photo aléatoire
-    const randomPhoto = photos[Math.floor(Math.random() * photos.length)];
     await client.sendMessage(remoteJid, {
-      image: { url: randomPhoto },
-      caption,
-      mentions: metadata.participants.map(p => p.id)
-    });
+      image: { url: photo },
+      caption: caption,
+      contextInfo: {
+        forwardingScore: 999,
+        isForwarded: true,
+        forwardedNewsletterMessageInfo: {
+          newsletterJid: config.Newsletter,
+          newsletterName: config.BotName,
+          serverMessageId: 143
+        },
+        mentionedJid: metadata.participants.map(p => p.id)
+      }
+    }, { quoted: message });
 
   } catch (err) {
     console.error("Erreur tagall:", err);
