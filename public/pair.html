@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NO NAME MD — Connect Your Bot</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #a855f7;
+      --primary-dark: #7c3aed;
+      --pink: #ec4899;
+      --bg: #07070f;
+      --card: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.09);
+      --text: #e2e8f0;
+      --muted: #6b7280;
+      --success: #22c55e;
+      --error: #ef4444;
+      --warn: #f59e0b;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(168,85,247,0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 30% at 80% 80%, rgba(236,72,153,0.08) 0%, transparent 60%);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 40px 32px;
+      width: 100%;
+      max-width: 460px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 0 80px rgba(168,85,247,0.1), 0 24px 48px rgba(0,0,0,0.4);
+    }
+
+    /* ── Header ── */
+    .header { text-align: center; margin-bottom: 28px; }
+    .bot-icon {
+      width: 72px; height: 72px; border-radius: 20px;
+      background: linear-gradient(135deg, var(--primary), var(--pink));
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 36px; margin-bottom: 16px;
+      box-shadow: 0 8px 32px rgba(168,85,247,0.35);
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    .header h1 {
+      font-size: 26px; font-weight: 800; letter-spacing: 1.5px;
+      background: linear-gradient(135deg, var(--primary), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .header p { color: var(--muted); font-size: 13px; margin-top: 6px; }
+
+    /* ── Divider ── */
+    .divider {
+      height: 1px; margin: 20px 0;
+      background: linear-gradient(to right, transparent, rgba(168,85,247,0.4), transparent);
+    }
+
+    /* ── Stats bar ── */
+    .stats { display: flex; gap: 10px; margin-bottom: 24px; }
+    .stat {
+      flex: 1; background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+      border-radius: 14px; padding: 14px 10px; text-align: center;
+    }
+    .stat-num { font-size: 26px; font-weight: 800; color: var(--primary); }
+    .stat-label { font-size: 11px; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* ── Form ── */
+    .field-label { font-size: 13px; color: #9ca3af; margin-bottom: 8px; display: block; }
+    .input-wrap { position: relative; }
+    .input-wrap .flag { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 18px; pointer-events: none; }
+    input[type="tel"] {
+      width: 100%; padding: 14px 16px 14px 44px;
+      background: rgba(255,255,255,0.06); border: 1.5px solid var(--border);
+      border-radius: 14px; color: #fff; font-size: 16px; outline: none;
+      transition: border 0.25s, box-shadow 0.25s;
+      -webkit-appearance: none;
+    }
+    input[type="tel"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(168,85,247,0.15);
+    }
+    input[type="tel"]::placeholder { color: #374151; }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 7px; }
+
+    /* ── Button ── */
+    .btn {
+      width: 100%; padding: 15px; margin-top: 18px;
+      background: linear-gradient(135deg, var(--primary), var(--pink));
+      border: none; border-radius: 14px; color: #fff;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+      letter-spacing: 0.3px;
+    }
+    .btn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+    .btn:active:not(:disabled) { transform: translateY(0); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    /* ── Result panels ── */
+    .panel {
+      margin-top: 22px; padding: 20px; border-radius: 16px;
+      display: none; animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .panel-success { background: rgba(34,197,94,0.07); border: 1px solid rgba(34,197,94,0.2); }
+    .panel-error   { background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.25); }
+    .panel-loading { background: rgba(255,255,255,0.03); border: 1px solid var(--border); text-align: center; }
+
+    .code-display {
+      font-size: 38px; font-weight: 900; letter-spacing: 10px;
+      color: var(--primary); font-family: 'Courier New', monospace;
+      text-align: center; margin: 12px 0;
+      background: rgba(0,0,0,0.35); padding: 12px; border-radius: 12px;
+    }
+    .steps { margin-top: 16px; }
+    .steps h4 { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .step { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+    .step-dot {
+      width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--primary), var(--pink));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 800; color: #fff;
+    }
+    .step span { font-size: 13px; color: #d1d5db; line-height: 1.5; }
+    .timer-note { font-size: 12px; color: var(--muted); text-align: center; margin-top: 12px; }
+
+    .error-text { color: #fca5a5; font-size: 14px; text-align: center; }
+
+    /* ── Spinner ── */
+    .spinner {
+      display: inline-block; width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.25); border-top-color: #fff;
+      border-radius: 50%; animation: spin 0.75s linear infinite;
+      vertical-align: middle; margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Footer link ── */
+    .footer-link { text-align: center; margin-top: 22px; font-size: 13px; color: var(--muted); }
+    .footer-link a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    .footer-link a:hover { text-decoration: underline; }
+
+    /* ── Toast ── */
+    #toasts { position: fixed; top: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 999; }
+    .toast {
+      background: #111827; border-left: 4px solid var(--primary);
+      padding: 12px 18px; border-radius: 10px; font-size: 13px;
+      animation: slideIn 0.25s ease, fadeOut 0.4s ease 4.6s forwards;
+      max-width: 260px;
+    }
+    @keyframes slideIn { from { transform: translateX(110%); opacity: 0; } to { transform: none; opacity: 1; } }
+    @keyframes fadeOut { to { opacity: 0; transform: translateX(110%); } }
+  </style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="bot-icon">👻</div>
+    <h1>NO NAME MD</h1>
+    <p>Connect your WhatsApp in seconds</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num" id="stat-total">–</div>
+      <div class="stat-label">Active Bots</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="stat-connected">–</div>
+      <div class="stat-label">Connected</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="stat-pending">–</div>
+      <div class="stat-label">Pending</div>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <label class="field-label" for="numero">📱 Your WhatsApp number</label>
+  <div class="input-wrap">
+    <span class="flag">🌍</span>
+    <input type="tel" id="numero" placeholder="241XXXXXXXX" maxlength="15" autocomplete="tel"/>
+  </div>
+  <p class="hint">Country code + number, no + or spaces — e.g. 24177994005</p>
+
+  <button class="btn" id="btn" onclick="requestCode()">
+    🔑 Get Pairing Code
+  </button>
+
+  <!-- Loading -->
+  <div class="panel panel-loading" id="panel-loading">
+    <span class="spinner"></span> Generating your code…
+  </div>
+
+  <!-- Success -->
+  <div class="panel panel-success" id="panel-success">
+    <p style="text-align:center;font-size:14px;color:#86efac;">✅ Your pairing code:</p>
+    <div class="code-display" id="code-display">------</div>
+    <p id="numero-display" style="text-align:center;font-size:13px;color:#6b7280;"></p>
+    <div class="steps">
+      <h4>📲 How to use it</h4>
+      <div class="step"><div class="step-dot">1</div><span>Open WhatsApp on your phone</span></div>
+      <div class="step"><div class="step-dot">2</div><span>Settings → Linked Devices</span></div>
+      <div class="step"><div class="step-dot">3</div><span>Link a Device</span></div>
+      <div class="step"><div class="step-dot">4</div><span>Enter code manually</span></div>
+      <div class="step"><div class="step-dot">5</div><span>Type the code above ☝️</span></div>
+    </div>
+    <p class="timer-note">⏱️ Code valid for <strong>2 minutes</strong></p>
+  </div>
+
+  <!-- Error -->
+  <div class="panel panel-error" id="panel-error">
+    <p class="error-text" id="error-text"></p>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer-link">
+    🔗 <a href="https://whatsapp.com/channel/0029Vb7Ibg5002T79MWH2r1p" target="_blank" rel="noopener">Join the NO NAME MD channel</a>
+  </div>
+
+</div>
+
+<!-- Toasts -->
+<div id="toasts"></div>
+
+<script>
+  // ── Stats polling ─────────────────────────────────────────────
+  function updateStats() {
+    fetch("/api/status")
+      .then(r => r.json())
+      .then(d => {
+        document.getElementById("stat-total").textContent     = d.total     ?? "–";
+        document.getElementById("stat-connected").textContent = d.connected ?? "–";
+        document.getElementById("stat-pending").textContent   = d.pending   ?? "–";
+      })
+      .catch(() => {});
+  }
+  updateStats();
+  setInterval(updateStats, 6000);
+
+  // ── Toast ─────────────────────────────────────────────────────
+  function toast(msg, color = "#a855f7") {
+    const el = document.createElement("div");
+    el.className = "toast";
+    el.style.borderLeftColor = color;
+    el.textContent = msg;
+    document.getElementById("toasts").appendChild(el);
+    setTimeout(() => el.remove(), 5200);
+  }
+
+  // ── Show / hide panels ────────────────────────────────────────
+  function showPanel(id) {
+    ["panel-loading","panel-success","panel-error"].forEach(p => {
+      document.getElementById(p).style.display = p === id ? "block" : "none";
+    });
+  }
+  function hideAll() {
+    ["panel-loading","panel-success","panel-error"].forEach(p => {
+      document.getElementById(p).style.display = "none";
+    });
+  }
+
+  // ── Request pairing code ──────────────────────────────────────
+  async function requestCode() {
+    const raw    = document.getElementById("numero").value;
+    const numero = raw.replace(/[^0-9]/g, "");
+    const btn    = document.getElementById("btn");
+
+    hideAll();
+
+    if (!numero || numero.length < 7 || numero.length > 15) {
+      showPanel("panel-error");
+      document.getElementById("error-text").textContent = "❌ Invalid number. Include country code, digits only.";
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Generating…';
+    showPanel("panel-loading");
+
+    try {
+      const res  = await fetch("/api/pair", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ numero }),
+      });
+      const data = await res.json();
+
+      hideAll();
+
+      if (data.ok && data.code) {
+        document.getElementById("code-display").textContent  = data.code;
+        document.getElementById("numero-display").textContent = `For number +${numero}`;
+        showPanel("panel-success");
+        toast("✅ Code generated!", "#22c55e");
+        updateStats();
+      } else {
+        throw new Error(data.error || "Unknown error");
+      }
+    } catch (err) {
+      hideAll();
+      showPanel("panel-error");
+      document.getElementById("error-text").textContent = "⚠️ " + err.message;
+      toast("❌ " + err.message, "#ef4444");
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = "🔑 Get Pairing Code";
+    }
+  }
+
+  document.getElementById("numero")
+    .addEventListener("keydown", e => { if (e.key === "Enter") requestCode(); });
+</script>
+</body>
+</html>

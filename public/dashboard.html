@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NO NAME MD — Dashboard</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #07070f;
+      --card: rgba(255,255,255,0.04);
+      --card2: rgba(255,255,255,0.07);
+      --border: rgba(255,255,255,0.09);
+      --primary: #a855f7;
+      --pink: #ec4899;
+      --green: #22c55e;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --text: #e2e8f0;
+      --muted: #6b7280;
+    }
+    body {
+      background: var(--bg);
+      background-image:
+        radial-gradient(ellipse 80% 40% at 50% -10%, rgba(168,85,247,0.15) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 30% at 90% 90%, rgba(236,72,153,0.07) 0%, transparent 60%);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Nav ── */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 24px;
+      background: rgba(0,0,0,0.4); border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100;
+    }
+    .nav-brand { display: flex; align-items: center; gap: 10px; }
+    .nav-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--primary), var(--pink));
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+    }
+    .nav-title { font-weight: 800; font-size: 16px; letter-spacing: 1px;
+      background: linear-gradient(135deg, var(--primary), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .nav-links { display: flex; gap: 8px; }
+    .nav-link {
+      padding: 7px 14px; border-radius: 10px; font-size: 13px; font-weight: 600;
+      text-decoration: none; color: var(--muted); transition: all 0.2s;
+      border: 1px solid transparent;
+    }
+    .nav-link:hover, .nav-link.active {
+      color: var(--text); background: var(--card2); border-color: var(--border);
+    }
+    .live-dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green); margin-right: 6px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    /* ── Main layout ── */
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
+
+    /* ── Stats grid ── */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 24px; }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 20px 16px; text-align: center; transition: transform 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); }
+    .stat-num { font-size: 34px; font-weight: 900; margin-bottom: 4px; }
+    .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
+    .stat-connected .stat-num { color: var(--green); }
+    .stat-total .stat-num { color: var(--primary); }
+    .stat-pending .stat-num { color: var(--yellow); }
+    .stat-reconnecting .stat-num { color: var(--blue); }
+    .stat-uptime .stat-num { font-size: 22px; color: var(--pink); }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .toolbar-title { font-size: 15px; font-weight: 700; flex: 1; }
+    .btn {
+      padding: 9px 16px; border-radius: 10px; border: none; cursor: pointer;
+      font-size: 13px; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn:hover { opacity: 0.85; transform: translateY(-1px); }
+    .btn:active { transform: none; }
+    .btn-primary { background: linear-gradient(135deg, var(--primary), var(--pink)); color: #fff; }
+    .btn-ghost { background: var(--card2); color: var(--text); border: 1px solid var(--border); }
+    .btn-danger { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.25); }
+    .btn-success { background: rgba(34,197,94,0.12); color: var(--green); border: 1px solid rgba(34,197,94,0.2); }
+    .btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 8px; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    /* ── Filter bar ── */
+    .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    .filter-btn {
+      padding: 5px 14px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--card); color: var(--muted); font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .filter-btn.active, .filter-btn:hover { color: var(--text); border-color: var(--primary); background: rgba(168,85,247,0.1); }
+
+    /* ── Sessions list ── */
+    #sessions-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .session-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 16px 20px; display: flex; align-items: center; gap: 16px;
+      transition: all 0.25s; animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .session-card:hover { border-color: rgba(168,85,247,0.3); background: var(--card2); }
+
+    .session-avatar {
+      width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 20px;
+      font-weight: 800; color: #fff;
+    }
+
+    .session-info { flex: 1; min-width: 0; }
+    .session-numero { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+    .session-meta { font-size: 12px; color: var(--muted); display: flex; gap: 14px; flex-wrap: wrap; }
+    .session-meta span { display: flex; align-items: center; gap: 4px; }
+
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;
+    }
+    .status-connected    { background: rgba(34,197,94,0.12);  color: var(--green); border: 1px solid rgba(34,197,94,0.25); }
+    .status-pending      { background: rgba(245,158,11,0.12); color: var(--yellow); border: 1px solid rgba(245,158,11,0.25); }
+    .status-reconnecting { background: rgba(59,130,246,0.12); color: var(--blue); border: 1px solid rgba(59,130,246,0.25); }
+    .status-logged_out   { background: rgba(239,68,68,0.1);  color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
+    .status-failed       { background: rgba(239,68,68,0.1);  color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
+    .status-stopped      { background: rgba(107,114,128,0.12); color: var(--muted); border: 1px solid rgba(107,114,128,0.2); }
+    .status-bad_session  { background: rgba(239,68,68,0.1); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
+
+    .session-actions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
+
+    /* ── Empty state ── */
+    .empty {
+      text-align: center; padding: 60px 20px; color: var(--muted);
+    }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-text { font-size: 15px; }
+
+    /* ── Log panel ── */
+    .log-panel {
+      background: rgba(0,0,0,0.5); border: 1px solid var(--border); border-radius: 16px;
+      margin-top: 24px; overflow: hidden;
+    }
+    .log-header {
+      padding: 12px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .log-header span { font-size: 13px; font-weight: 700; color: var(--muted); }
+    .log-body {
+      padding: 12px 20px; height: 160px; overflow-y: auto;
+      font-family: 'Courier New', monospace; font-size: 12px;
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .log-entry { color: #94a3b8; }
+    .log-entry.ok  { color: var(--green); }
+    .log-entry.err { color: var(--red); }
+    .log-entry.warn { color: var(--yellow); }
+    .log-body::-webkit-scrollbar { width: 4px; }
+    .log-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    /* ── Toast ── */
+    #toasts { position: fixed; top: 70px; right: 16px; display: flex; flex-direction: column; gap: 8px; z-index: 999; }
+    .toast {
+      background: #111827; border-left: 4px solid var(--primary);
+      padding: 10px 16px; border-radius: 10px; font-size: 13px; max-width: 260px;
+      animation: slideIn 0.25s ease, fadeOut 0.4s ease 4.6s forwards;
+    }
+    @keyframes slideIn { from { transform: translateX(110%); opacity: 0; } to { transform: none; opacity: 1; } }
+    @keyframes fadeOut { to { opacity: 0; transform: translateX(110%); } }
+
+    /* ── Confirm modal ── */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none;
+      align-items: center; justify-content: center; z-index: 500; backdrop-filter: blur(4px);
+    }
+    .overlay.show { display: flex; }
+    .modal {
+      background: #111827; border: 1px solid var(--border); border-radius: 20px;
+      padding: 28px 32px; max-width: 360px; width: 90%; text-align: center;
+    }
+    .modal h3 { font-size: 18px; margin-bottom: 10px; }
+    .modal p  { color: var(--muted); font-size: 14px; margin-bottom: 22px; line-height: 1.6; }
+    .modal-actions { display: flex; gap: 10px; justify-content: center; }
+
+    @media (max-width: 600px) {
+      .session-card { flex-direction: column; align-items: flex-start; }
+      .session-actions { width: 100%; }
+      .session-actions .btn { flex: 1; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <div class="nav-icon">👻</div>
+    <span class="nav-title">NO NAME MD</span>
+  </div>
+  <div class="nav-links">
+    <a href="/pair" class="nav-link">➕ Add Bot</a>
+    <a href="/dashboard" class="nav-link active">📊 Dashboard</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card stat-total">
+      <div class="stat-num" id="s-total">–</div>
+      <div class="stat-label">Total Sessions</div>
+    </div>
+    <div class="stat-card stat-connected">
+      <div class="stat-num" id="s-connected">–</div>
+      <div class="stat-label"><span class="live-dot"></span>Connected</div>
+    </div>
+    <div class="stat-card stat-pending">
+      <div class="stat-num" id="s-pending">–</div>
+      <div class="stat-label">Pending</div>
+    </div>
+    <div class="stat-card stat-reconnecting">
+      <div class="stat-num" id="s-reconnecting">–</div>
+      <div class="stat-label">Reconnecting</div>
+    </div>
+    <div class="stat-card stat-uptime">
+      <div class="stat-num" id="s-uptime">–</div>
+      <div class="stat-label">Server Uptime</div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <span class="toolbar-title">🤖 Active Bots</span>
+    <button class="btn btn-success btn-sm" onclick="reconnectAll()">⚡ Force Reconnect All</button>
+    <button class="btn btn-ghost btn-sm" onclick="refresh()">🔄 Refresh</button>
+  </div>
+
+  <!-- Filter -->
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+    <button class="filter-btn" onclick="setFilter('connected', this)">✅ Connected</button>
+    <button class="filter-btn" onclick="setFilter('pending', this)">⏳ Pending</button>
+    <button class="filter-btn" onclick="setFilter('reconnecting', this)">🔄 Reconnecting</button>
+    <button class="filter-btn" onclick="setFilter('disconnected', this)">❌ Disconnected</button>
+  </div>
+
+  <!-- Sessions list -->
+  <div id="sessions-list">
+    <div class="empty"><div class="empty-icon">⏳</div><div class="empty-text">Loading sessions...</div></div>
+  </div>
+
+  <!-- Log panel -->
+  <div class="log-panel">
+    <div class="log-header">
+      <span>📋 Activity Log</span>
+      <button class="btn btn-ghost btn-sm" onclick="clearLog()">Clear</button>
+    </div>
+    <div class="log-body" id="log-body"></div>
+  </div>
+
+</div>
+
+<!-- Toasts -->
+<div id="toasts"></div>
+
+<!-- Confirm modal -->
+<div class="overlay" id="modal-overlay">
+  <div class="modal">
+    <h3 id="modal-title">Confirm</h3>
+    <p id="modal-body">Are you sure?</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-danger" id="modal-confirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentFilter = 'all';
+  let allSessions   = [];
+  let modalCallback = null;
+
+  function toast(msg, color = '#a855f7') {
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.style.borderLeftColor = color;
+    el.textContent = msg;
+    document.getElementById('toasts').appendChild(el);
+    setTimeout(() => el.remove(), 5200);
+  }
+
+  function log(msg, type = '') {
+    const el = document.createElement('div');
+    el.className = 'log-entry ' + type;
+    el.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+    const body = document.getElementById('log-body');
+    body.appendChild(el);
+    body.scrollTop = body.scrollHeight;
+    if (body.children.length > 200) body.removeChild(body.firstChild);
+  }
+
+  function clearLog() { document.getElementById('log-body').innerHTML = ''; }
+
+  function openModal(title, body, cb) {
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-body').textContent  = body;
+    document.getElementById('modal-overlay').classList.add('show');
+    document.getElementById('modal-confirm').onclick = () => { closeModal(); cb(); };
+  }
+
+  function closeModal() { document.getElementById('modal-overlay').classList.remove('show'); }
+
+  function formatUptime(ms) {
+    if (!ms) return '–';
+    const s = Math.floor(ms / 1000);
+    const m = Math.floor(s / 60);
+    const h = Math.floor(m / 60);
+    if (h > 0) return `${h}h ${m % 60}m`;
+    if (m > 0) return `${m}m ${s % 60}s`;
+    return `${s}s`;
+  }
+
+  function formatServerUptime(secs) {
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m}m`;
+  }
+
+  function formatLastActivity(ts) {
+    if (!ts) return 'Never';
+    const diff = Date.now() - ts;
+    const s = Math.floor(diff / 1000);
+    if (s < 60) return `${s}s ago`;
+    if (s < 3600) return `${Math.floor(s/60)}m ago`;
+    return `${Math.floor(s/3600)}h ago`;
+  }
+
+  function avatarColor(numero) {
+    const colors = ['#7c3aed','#db2777','#0891b2','#059669','#d97706','#dc2626'];
+    let h = 0;
+    for (const c of numero) h = (h * 31 + c.charCodeAt(0)) % colors.length;
+    return colors[h];
+  }
+
+  function statusBadge(status) {
+    const labels = {
+      connected: '🟢 Connected',
+      pending: '🟡 Pending',
+      reconnecting: '🔵 Reconnecting',
+      logged_out: '🔴 Logged Out',
+      bad_session: '🔴 Bad Session',
+      failed: '🔴 Failed',
+      stopped: '⚫ Stopped',
+    };
+    return `<span class="status-badge status-${status}">${labels[status] || status}</span>`;
+  }
+
+  function sessionActions(s) {
+    const isOk = s.status === 'connected';
+    const isDead = ['logged_out','bad_session','failed'].includes(s.status);
+    return `
+      ${!isOk ? `<button class="btn btn-ghost btn-sm" onclick="reconnectOne('${s.numero}')">⚡ Reconnect</button>` : ''}
+      ${isOk  ? `<button class="btn btn-ghost btn-sm" onclick="stopOne('${s.numero}')">⏹ Stop</button>` : `<button class="btn btn-ghost btn-sm" onclick="restartOne('${s.numero}')">▶️ Start</button>`}
+      <button class="btn btn-danger btn-sm" onclick="deleteOne('${s.numero}')">🗑️</button>
+    `;
+  }
+
+  function renderSessions(sessions) {
+    const list = document.getElementById('sessions-list');
+    if (sessions.length === 0) {
+      list.innerHTML = `<div class="empty"><div class="empty-icon">🤖</div><div class="empty-text">No sessions found.</div></div>`;
+      return;
+    }
+    list.innerHTML = sessions.map(s => `
+      <div class="session-card" id="card-${s.numero}">
+        <div class="session-avatar" style="background:${avatarColor(s.numero)}">
+          ${s.numero.slice(-2)}
+        </div>
+        <div class="session-info">
+          <div class="session-numero">📱 +${s.numero}</div>
+          <div class="session-meta">
+            <span>👑 ${s.owner || s.numero}</span>
+            <span>⚙️ ${s.mode || 'public'}</span>
+            <span>🔄 Retries: ${s.retries || 0}</span>
+            <span>⏱ Up: ${formatUptime(s.uptime)}</span>
+            <span>📡 ${formatLastActivity(s.lastActivity)}</span>
+          </div>
+        </div>
+        <div style="flex-shrink:0">${statusBadge(s.status)}</div>
+        <div class="session-actions">${sessionActions(s)}</div>
+      </div>
+    `).join('');
+  }
+
+  function applyFilter(sessions, filter) {
+    if (filter === 'all') return sessions;
+    if (filter === 'disconnected') return sessions.filter(s => ['logged_out','bad_session','failed','stopped'].includes(s.status));
+    return sessions.filter(s => s.status === filter);
+  }
+
+  function setFilter(f, btn) {
+    currentFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderSessions(applyFilter(allSessions, f));
+  }
+
+  async function fetchSessions() {
+    try {
+      const [sRes, stRes] = await Promise.all([
+        fetch('/api/sessions'),
+        fetch('/api/status'),
+      ]);
+      const sData  = await sRes.json();
+      const stData = await stRes.json();
+
+      allSessions = sData.sessions || [];
+      renderSessions(applyFilter(allSessions, currentFilter));
+
+      document.getElementById('s-total').textContent       = stData.total       ?? 0;
+      document.getElementById('s-connected').textContent   = stData.connected   ?? 0;
+      document.getElementById('s-pending').textContent     = stData.pending     ?? 0;
+      document.getElementById('s-reconnecting').textContent= stData.reconnecting ?? 0;
+      document.getElementById('s-uptime').textContent      = formatServerUptime(stData.uptime || 0);
+
+    } catch (err) {
+      log('Fetch error: ' + err.message, 'err');
+    }
+  }
+
+  function refresh() {
+    log('Refreshing sessions...', 'warn');
+    fetchSessions();
+  }
+
+  async function reconnectAll() {
+    log('Force reconnecting all weak sessions...', 'warn');
+    try {
+      await fetch('/api/reconnect-all', { method: 'POST' });
+      toast('⚡ Force reconnecting all!', '#3b82f6');
+      log('Reconnect-all triggered', 'ok');
+      setTimeout(fetchSessions, 3000);
+    } catch (err) {
+      log('Error: ' + err.message, 'err');
+    }
+  }
+
+  async function reconnectOne(numero) {
+    log(`Force reconnecting +${numero}...`, 'warn');
+    try {
+      await fetch(`/api/session/${numero}/reconnect`, { method: 'POST' });
+      toast(`⚡ +${numero} reconnecting`, '#3b82f6');
+      log(`+${numero} reconnect triggered`, 'ok');
+      setTimeout(fetchSessions, 3000);
+    } catch (err) {
+      log('Error: ' + err.message, 'err');
+    }
+  }
+
+  async function stopOne(numero) {
+    try {
+      await fetch(`/api/session/${numero}/stop`, { method: 'POST' });
+      toast(`⏹ +${numero} stopped`, '#f59e0b');
+      log(`+${numero} stopped`, 'warn');
+      setTimeout(fetchSessions, 1500);
+    } catch (err) { log('Error: ' + err.message, 'err'); }
+  }
+
+  async function restartOne(numero) {
+    try {
+      await fetch(`/api/session/${numero}/restart`, { method: 'POST' });
+      toast(`▶️ +${numero} starting`, '#22c55e');
+      log(`+${numero} restart triggered`, 'ok');
+      setTimeout(fetchSessions, 3000);
+    } catch (err) { log('Error: ' + err.message, 'err'); }
+  }
+
+  function deleteOne(numero) {
+    openModal('Delete Session', `Permanently delete +${numero}? This cannot be undone.`, async () => {
+      try {
+        await fetch(`/api/session/${numero}`, { method: 'DELETE' });
+        toast(`🗑️ +${numero} deleted`, '#ef4444');
+        log(`+${numero} deleted`, 'err');
+        setTimeout(fetchSessions, 1000);
+      } catch (err) { log('Error: ' + err.message, 'err'); }
+    });
+  }
+
+  document.getElementById('modal-overlay').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+
+  log('Dashboard started', 'ok');
+  fetchSessions();
+  setInterval(fetchSessions, 8000);
+</script>
+</body>
+</html>
