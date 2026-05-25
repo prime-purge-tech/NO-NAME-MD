@@ -1,4 +1,4 @@
-```markdown
+markdown
 <p align="center">
   <img src="https://files.catbox.moe/imvdf4.jpg" alt="NO NAME MD Banner" width="100%"/>
 </p>
