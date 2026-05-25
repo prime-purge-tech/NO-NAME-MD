@@ -3,7 +3,7 @@ markdown
   <img src="https://files.catbox.moe/imvdf4.jpg" alt="NO NAME MD Banner" width="100%"/>
 </p>
 
-<h1 align="center">👻 NO NAME MD — Multi-Session + MongoDB</h1>
+<h1 align="center">👻 NO NAME MD</h1>
 
 <p align="center">
   <strong>Un système de bot WhatsApp multi-session complet où chaque numéro de téléphone possède sa propre instance de bot</strong>
@@ -227,7 +227,7 @@ Commande Description
 </p>
 
 <p align="center">
-  <a href="https://t.me/dev_no_namee">
+  <a href="https://t.me/dev_no_name_off">
     <img src="https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" />
   </a>
   <a href="https://t.me/prime_purge_tech">
@@ -246,4 +246,4 @@ MIT © NO NAME MD
 <p align="center">
   <i>👻 NO NAME MD — Le bot WhatsApp nouvelle génération 👻</i>
 </p>
-```
+
